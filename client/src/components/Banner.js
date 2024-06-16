@@ -1,4 +1,4 @@
-import axios from '../stuff/axios';
+import axios from '../services/axios';
 import React, { useEffect, useState } from 'react'
 import Carousel from 'react-bootstrap/Carousel';
 import Image from 'react-bootstrap/Image'

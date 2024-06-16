@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from '../stuff/axios';
+import axios from '../services/axios';
 import Image from 'react-bootstrap/Image';
 import './styles.css'
 

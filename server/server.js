@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const dotenv = require('dotenv').config()
-const tmdbApiUrls = require('./config/tmdbApiUrls')
+const dotenv = require('dotenv').config({ path: '../.env' });
+const tmdbApiUrls = require('./config/tmdbApiUrls');
+
+
 
 const app = express();
 const port = 3030;
@@ -20,10 +22,10 @@ app.get('/api/:genre', async (req, res) => {
         res.status(500).json({error:  'Failed to fetch data'});
     }
 
-})
+});
 
 
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-})
+});

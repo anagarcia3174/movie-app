@@ -13,12 +13,23 @@ export const userSlice = createSlice({
     },
     logout: (state) => {
       state.user = null
+    },
+    updateUserProfile: (state, action) => {
+      const { photoURL, displayName, email } = action.payload;
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          photoURL: photoURL || state.user.photoURL,
+          displayName: displayName || state.user.displayName,
+          email: email || state.user.email,
+        };
+      }
     }
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { login, logout } = userSlice.actions;
+export const { login, logout, updateUserProfile } = userSlice.actions;
 
 export const selectUser = (state) => state.user.user;
 

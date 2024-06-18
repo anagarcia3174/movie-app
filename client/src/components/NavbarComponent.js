@@ -18,7 +18,7 @@ const NavbarComponent = () => {
   return (
     <>
     <Navbar expand="lg" fixed="top" sticky="top" className="p-2 px-4 navbar-dark bg-dark" >
-        <Navbar.Brand><img width='150' src="https://fontmeme.com/permalink/240613/dedcef0e6b4f708bbb5d4b504aff01fa.png" alt='comments'/></Navbar.Brand>
+        <Navbar.Brand onClick={() => navigate('/')}><img width='150' src="https://fontmeme.com/permalink/240613/dedcef0e6b4f708bbb5d4b504aff01fa.png" alt='comments'/></Navbar.Brand>
             {user ? 
             <Button onClick={() => navigate('/profile')} className="bg-transparent border-0 ms-auto px-4" ><IoPersonOutline size={20} fill="white"/></Button>
 

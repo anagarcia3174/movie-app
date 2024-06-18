@@ -24,6 +24,7 @@ const errorMessages = {
   'auth/user-disabled': 'This user account has been disabled.',
   'auth/user-mismatch': 'The credentials provided do not match the user. Please check your credentials and try again.',
   'auth/user-signed-out': 'The user has been signed out. Please sign in again.',
+  'auth/invalid-profile-attribute': 'Please enter a valid photo URL.'
 }
 
 // Initialize Firebase

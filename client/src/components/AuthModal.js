@@ -80,7 +80,7 @@ const AuthModal = ({show, onHide, isMember, setIsMember}) => {
         setIsLoading(false);
         const errorCode = error.code;
         const customMessage = errorMessages[errorCode]
-        setErrorAlert(customMessage);
+        setErrorAlert(customMessage || "Error. Please try again later.");
       })    };
 
   return (

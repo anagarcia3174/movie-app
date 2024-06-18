@@ -12,6 +12,7 @@ import { login, logout  } from './redux/slices/userSlice';
 import ProfileScreen from './screens/ProfileScreen'
 import  {ProtectedRoute}  from './components/ProtectedRoute';
 import { useState } from 'react';
+import LoadingScreen from './screens/LoadingScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -23,6 +24,8 @@ function App() {
         dispatch(login({
           uid: userAuth.uid,
           email: userAuth.email,
+          displayName: userAuth.displayName,
+          photoURL: userAuth.photoURL,
         }))
       }else {
         dispatch(logout());
@@ -34,7 +37,7 @@ function App() {
   }, [dispatch]);
 
   if(isLoading){
-    return (<h2>Loading...</h2>)
+    return (<LoadingScreen></LoadingScreen>)
   }
 
   return (

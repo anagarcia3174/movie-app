@@ -24,12 +24,20 @@ export const userSlice = createSlice({
           email: email || state.user.email,
         };
       }
+    },
+    verifyUserProfile: (state) => {
+      if(state.user){
+        state.user = {
+          ...state.user,
+          verified: true
+        };
+      }
     }
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { login, logout, updateUserProfile } = userSlice.actions;
+export const { login, logout, updateUserProfile, verifyUserProfile } = userSlice.actions;
 
 export const selectUser = (state) => state.user.user;
 

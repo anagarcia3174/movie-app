@@ -14,7 +14,7 @@ app.use(cors());
 
 app.get('/api/:genre', async (req, res) => {
     const genre = req.params.genre;
-    const apiUrl = tmdbApiUrls.getApiUrl(genre);
+    const apiUrl = tmdbApiUrls.getListUrl(genre);
     try{
         const response = await axios.get(apiUrl);
         res.json(response.data);
@@ -22,6 +22,22 @@ app.get('/api/:genre', async (req, res) => {
         res.status(500).json({error:  'Failed to fetch data'});
     }
 
+});
+
+app.get('/search', async (req, res) => {
+    const keyword = req.query.keyword;
+    if (!keyword) {
+        return res.status(400).json({ error: 'Keyword query parameter is required' });
+    }
+    
+    const searchUrl = tmdbApiUrls.getSearchUrl(keyword);
+
+    try {
+        const response = await axios.get(searchUrl);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch data' });
+    }
 });
 
 

@@ -24,7 +24,7 @@ const baseUrl = 'https://image.tmdb.org/t/p/original';
   return (
     <Carousel indicators={false}  controls={true} fade interval={4000} className='bg-dark m-3'>
         {
-            movies.slice(0,5).map((movie) => (
+            movies.slice(0,6).map((movie) => (
 <Carousel.Item key={movie.id}>
       <div className="d-flex justify-content-center align-items-center" >
         <Image

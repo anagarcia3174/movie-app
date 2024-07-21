@@ -7,6 +7,7 @@ import Offcanvas from 'react-bootstrap/Offcanvas';
 import ListGroup from 'react-bootstrap/ListGroup'
 import Image from 'react-bootstrap/Image';
 import Spinner  from 'react-bootstrap/Spinner';
+import { useNavigate } from 'react-router-dom';
 
 
 const SearchBar = () => {
@@ -16,6 +17,7 @@ const SearchBar = () => {
     const [offCanvasShow, setOffCanvasShow] = useState(false);
     const baseUrl = 'https://image.tmdb.org/t/p/original';
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleClose = () => setOffCanvasShow(false);
     const handleShow = () => setOffCanvasShow(true);
@@ -27,7 +29,7 @@ const SearchBar = () => {
 
         try{
             const request = await axios.get(`/search?keyword=${keyword}`)
-            setSearchResults(request.data.results)
+            setSearchResults(request.data)
             handleShow();
             setLoading(false)
         }catch(e){
@@ -57,7 +59,7 @@ const SearchBar = () => {
           {
           searchResults.length === 0 ?  <h2>No Movies Found</h2> :
           searchResults.map(result => (
-            <ListGroup.Item className="d-flex flex-row m-2 border-0 rounded" action >
+            <ListGroup.Item onClick={() => navigate(`/movie/${result.id}`)} key={result.id} className="d-flex flex-row m-2 border-0 rounded" action >
             {result.poster_path ? <Image className="mx-2 w-25" src={`${baseUrl}${result?.poster_path}`}></Image>: <></> }
             <div>
                 <h5>{result?.title || result?.name || result?.original_title}</h5>

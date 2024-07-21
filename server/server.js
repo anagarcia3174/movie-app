@@ -12,7 +12,7 @@ const port = 3030;
 app.use(express.json());
 app.use(cors());
 
-app.get('/api/:genre', async (req, res) => {
+app.get('/genre/:genre', async (req, res) => {
     const genre = req.params.genre;
     const apiUrl = tmdbApiUrls.getListUrl(genre);
     try{
@@ -24,6 +24,7 @@ app.get('/api/:genre', async (req, res) => {
 
 });
 
+
 app.get('/search', async (req, res) => {
     const keyword = req.query.keyword;
     if (!keyword) {
@@ -34,13 +35,23 @@ app.get('/search', async (req, res) => {
 
     try {
         const response = await axios.get(searchUrl);
-        res.json(response.data);
+        res.json(response.data.results.filter(item => item.media_type !== 'person'));
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch data' });
     }
 });
 
+app.get('/movie/:id', async (req, res) => {
+    const movieID = req.params.id;
+    const apiUrl = tmdbApiUrls.getMovieUrl(movieID);
 
+    try {
+        const response = await axios.get(apiUrl);
+        res.json(response.data)
+    }catch(error){
+        res.status(500).json({ error: error.message});
+    }
+})
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

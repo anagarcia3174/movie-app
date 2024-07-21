@@ -4,16 +4,17 @@ import Carousel from 'react-bootstrap/Carousel';
 import Image from 'react-bootstrap/Image'
 import Button from 'react-bootstrap/Button'
 import './styles.css';
+import { useNavigate } from 'react-router-dom';
 
 const Banner = () => {
 
 const [movies, setMovies] = useState([]);
 const baseUrl = 'https://image.tmdb.org/t/p/original';
-
+const navigate = useNavigate()
 
   useEffect(() => {
     async function fetchData() {
-      const request = await axios.get(`/api/Popular`)
+      const request = await axios.get(`/genre/Popular`)
       setMovies(request.data.results);
       return request;
     }
@@ -36,8 +37,7 @@ const baseUrl = 'https://image.tmdb.org/t/p/original';
       <Carousel.Caption className="d-flex flex-column align-items-center">
         <h3 className="w-100">{movie?.title || movie?.name || movie?.original_title}</h3>
         <div>
-            <Button style={{backgroundColor: 'rgba(255, 255, 255, 0.2)', border: 'none'}} className="m-2">COMMENT</Button>
-            <Button style={{backgroundColor: 'rgba(255, 255, 255, 0.2)', border: 'none'}} className="m-2" >ADD TO LIST</Button>
+            <Button onClick={() => navigate(`/movie/${movie.id}`)} style={{backgroundColor: 'rgba(255, 255, 255, 0.2)', border: 'none'}} className="m-2">COMMENT</Button>
         </div>
       </Carousel.Caption>
     </Carousel.Item>

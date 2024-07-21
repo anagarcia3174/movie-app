@@ -5,7 +5,7 @@ module.exports = {
         let url;
         switch(genre) {
             case 'Popular':
-                url = `${baseUrl}trending/all/day?language=en-US&api_key=${apiKey}`;
+                url = `${baseUrl}trending/movie/week?api_key=${apiKey}`;
                 break;
             case 'Action':
                 url = `${baseUrl}discover/movie?api_key=${apiKey}&with_genres=28`;
@@ -26,7 +26,7 @@ module.exports = {
                 url = `${baseUrl}discover/movie?api_key=${apiKey}&with_genres=27`;
                 break;
             default:
-                url = `${baseUrl}movie/popular?api_key=${apiKey}&language=en-US&page=1`;
+                url = `${baseUrl}trending/movie/week?api_key=${apiKey}`;
             
         }
         return url;
@@ -34,6 +34,11 @@ module.exports = {
     getSearchUrl: (keyword) => {
         const apiKey = process.env.TMDB_API_KEY;
         const baseUrl = "https://api.themoviedb.org/3/";
-        return `${baseUrl}search/multi?api_key=${apiKey}&language=en-US&query=${keyword}&page=1&include_adult=false`;
+        return `${baseUrl}search/movie?api_key=${apiKey}&language=en-US&query=${keyword}&page=1&include_adult=false`;
+    }, 
+    getMovieUrl: (movieID) => {
+        const apiKey = process.env.TMDB_API_KEY;
+        const baseUrl = "https://api.themoviedb.org/3/";
+        return `${baseUrl}movie/${movieID}?api_key=${apiKey}`;
     }
 }

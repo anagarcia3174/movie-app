@@ -20,7 +20,7 @@ const NavbarComponent = () => {
     <Navbar data-bs-theme='dark' expand="lg" fixed="top" sticky="top" className="p-2 px-4 navbar-dark bg-dark" >
         <Navbar.Brand onClick={() => navigate('/')}><img width='150' src="https://fontmeme.com/permalink/240613/dedcef0e6b4f708bbb5d4b504aff01fa.png" alt='comments'/></Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                <Navbar.Collapse id="basic-navbar-nav" >
+                <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
                     {user ? (
                         <>
                             <SearchBar />
@@ -29,10 +29,10 @@ const NavbarComponent = () => {
                             </Button>
                         </>
                     ) : (
-                        <>
+                        <div>
                             <Button onClick={() => { setInModalShow(true); setIsMember(true); }} style={{ backgroundColor: "#06B2DF", borderColor: "#06B2DF" }} className='m-2'>Log In</Button>
                             <Button onClick={() => { setInModalShow(true); setIsMember(false); }} style={{ backgroundColor: "#06B2DF", borderColor: "#06B2DF" }}>Sign Up</Button>
-                        </>
+                        </div>
                     )}
                 </Navbar.Collapse>
             

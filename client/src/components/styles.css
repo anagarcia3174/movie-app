@@ -27,3 +27,9 @@
     transform: scale(1.08);
     opacity: 1;
 }
+
+.background-image {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat; 
+}

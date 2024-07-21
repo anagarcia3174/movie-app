@@ -92,7 +92,7 @@ const ProfileScreen = () => {
     <>
     <NavbarComponent></NavbarComponent>
     <div className="d-flex flex-column  align-items-center vh-100 bg-dark">
-      {userVerified ? <></> : <Alert data-bs-theme="dark" variant='warning'>Your email needs to be verified. <Alert.Link onClick={() => handleUserVerification()}>Click here to send verification email.</Alert.Link></Alert>}
+      {userVerified ? <></> : <Alert data-bs-theme="dark" variant='warning'>Your email needs to be verified. <Alert.Link onClick={() => handleUserVerification()}>Click here to send a verification email.</Alert.Link></Alert>}
       {alertText ? <Alert data-bs-theme="dark" variant={alertVariant}>{alertText}</Alert> : <></>}
       <Card className='w-75 p-3 m-4 border-light text-white bg-dark'>
         <Card.Body>

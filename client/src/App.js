@@ -13,6 +13,7 @@ import ProfileScreen from './screens/ProfileScreen'
 import  {ProtectedRoute}  from './components/ProtectedRoute';
 import { useState } from 'react';
 import LoadingScreen from './screens/LoadingScreen';
+import MediaScreen from './screens/MediaScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +54,7 @@ function App() {
             </ProtectedRoute>
           }
           />
+          <Route path="/movie/:id" element={<MediaScreen />} />
         </Routes>
       </Router>
 

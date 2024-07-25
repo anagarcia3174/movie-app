@@ -8,53 +8,21 @@ import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import Form from 'react-bootstrap/Form'
 import ListGroup from 'react-bootstrap/ListGroup';
+import Button from 'react-bootstrap/Button'
+import { IoIosSend } from "react-icons/io";
+import { useSelector } from 'react-redux'
+import { selectUser } from '../redux/slices/userSlice'
+
 
 
 const MediaScreen = () => {
-  const comments = [
-    {
-      userName: "MovieBuff123",
-      userId: "user_abc123",
-      comment: "This scene was absolutely mind-blowing!",
-      movieName: "Inception",
-      movieId: "519182",
-      upVotes: 15,
-      downVotes: 2,
-      commentId: "comment_xyz789",
-      timeStamp: "5",
-      dateOfComment: "2024-07-19T14:30:00Z"
-    },
-    {
-      userName: "CinemaFan2000",
-      userId: "user_def456",
-      comment: "I didn't quite understand this part. Can someone explain?",
-      movieName: "Interstellar",
-      movieId: "519182",
-      upVotes: 7,
-      downVotes: 1,
-      commentId: "comment_uvw321",
-      timeStamp: "1000",
-      dateOfComment: "2024-07-19T15:45:00Z"
-    },
-    {
-      userName: "FilmCritic101",
-      userId: "user_ghi789",
-      comment: "The cinematography in this sequence is outstanding.",
-      movieName: "The Grand Budapest Hotel",
-      movieId: "519182",
-      upVotes: 22,
-      downVotes: 3,
-      commentId: "comment_rst654",
-      timeStamp: "4000",
-      dateOfComment: "2024-07-19T16:20:00Z"
-    }
-  ];
-
     const { id } = useParams()
     const [movie, setMovie] = useState(null)
     const baseUrl = 'https://image.tmdb.org/t/p/original'
     const [timestamp, setTimestamp] = useState(0.00)
     const [filteredComments, setFilteredComments] = useState([])
+    const [input, setInput] = useState('');
+    const user = useSelector(selectUser);
 
 
     useEffect(() => {
@@ -73,7 +41,7 @@ const MediaScreen = () => {
     const handleTimestampChange = (e) => {
       const newTimestamp = parseFloat(e.target.value);
       setTimestamp(newTimestamp);
-      setFilteredComments(getComments(newTimestamp));
+      //setFilteredComments(getComments(newTimestamp));
       
     }
 
@@ -93,11 +61,27 @@ const MediaScreen = () => {
       return (str?.length > 150) ? str.slice(0, 125) + '...' : str;
     }
 
-    const getComments = (currentTimeStamp) => {
-      return comments.filter(comment => {
-        return Math.abs(comment.timeStamp - currentTimeStamp) <= 10;
-      })
+    const submitComment = async () => {
+      const userId = user.uid;
+      const movieId = movie._id;
+
+      try{
+        const response = await axios.post('/comments', {
+          userId,
+          movieId,
+          content: input,
+          timestamp,
+        });
+        setInput('')
+      } catch (error){
+      }
     }
+
+    // const getComments = (currentTimeStamp) => {
+    //   return comments.filter(comment => {
+    //     return Math.abs(comment.timeStamp - currentTimeStamp) <= 10;
+    //   })
+    // }
 
   return (
     <>
@@ -110,20 +94,28 @@ const MediaScreen = () => {
             </Col>
           </Row>
           <Row className="p-3">
-            <Col lg={1} xs="3" >
+            <Col lg="1" xs="3" >
           <h5 className='text-light \'>{formatTime(timestamp)}</h5>
             </Col>
             <Col>
           <Form.Range
             min={0}
-            max={movie?.runtime * 60}
+            max={`${movie?.runtime * 60}`}
             step={0.01}
             defaultValue={timestamp}
             onChange={handleTimestampChange}
           />
             </Col>
           </Row>
-          <ListGroup data-bs-theme="dark">
+          <Row className="p-3">
+              <Col>
+              <Form.Control data-bs-theme="dark" placeholder='Add a comment...' value={input} onChange={(e) => setInput(e.target.value)} as="textarea" rows={1} />
+              </Col>
+              <Col lg="1" xs="2">
+              <Button onClick={submitComment} variant="outline-primary" className="w-100 h-100 d-flex justify-content-center align-items-center"><IoIosSend size={20} /></Button>
+              </Col>
+          </Row>
+          {/* <ListGroup data-bs-theme="dark">
             {
               filteredComments.map((comment) =>(
                 <ListGroup.Item variant="light">
@@ -132,7 +124,7 @@ const MediaScreen = () => {
                 </ListGroup.Item>
               ))
             }
-          </ListGroup>
+          </ListGroup> */}
 
         </Container>
       </div>

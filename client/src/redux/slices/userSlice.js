@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {};
 
@@ -9,10 +9,10 @@ export const userSlice = createSlice({
   },
   reducers: {
     login: (state, action) => {
-      state.user  = action.payload
+      state.user = action.payload;
     },
     logout: (state) => {
-      state.user = null
+      state.user = null;
     },
     updateUserProfile: (state, action) => {
       const { photoURL, displayName, email } = action.payload;
@@ -26,18 +26,19 @@ export const userSlice = createSlice({
       }
     },
     verifyUserProfile: (state) => {
-      if(state.user){
+      if (state.user) {
         state.user = {
           ...state.user,
-          verified: true
+          verified: true,
         };
       }
-    }
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { login, logout, updateUserProfile, verifyUserProfile } = userSlice.actions;
+export const { login, logout, updateUserProfile, verifyUserProfile } =
+  userSlice.actions;
 
 export const selectUser = (state) => state.user.user;
 

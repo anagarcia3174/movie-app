@@ -14,22 +14,20 @@ const Banner = () => {
 
   useEffect(() => {
     async function fetchData() {
-      try{
+      try {
         const request = await axios.get(`/genre/Popular`);
         setMovies(request.data.results);
-
-      }catch(error){
-        setError(error)
+      } catch (error) {
+        setError(error);
       }
     }
 
     fetchData();
   }, []);
 
-  if (error || movies.length === 0){
+  if (error || movies.length === 0) {
     return null;
   }
-
 
   return (
     <Carousel

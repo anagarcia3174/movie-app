@@ -19,10 +19,9 @@ const movieSchema = mongoose.Schema(
     poster_path: String,
     backdrop_path: String,
     overview: String,
-
   },
   { timestamps: true }
 );
 
 const Movie = mongoose.model("Movie", movieSchema);
-module.exports = Movie
+module.exports = Movie;

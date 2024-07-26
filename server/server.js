@@ -6,9 +6,14 @@ const tmdbApiUrls = require("./config/tmdbApiUrls");
 const mongoose = require("mongoose");
 const Movie = require("./models/movieModel");
 const Comment = require("./models/commentModel")
-
+const admin = require('firebase-admin')
 const app = express();
 const port = process.env.PORT || 3030;
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+
+admin.initializeApp({
+  credential:  admin.credential.cert(serviceAccount),
+})
 
 app.use(express.json());
 app.use(cors());
@@ -46,7 +51,6 @@ async function updateOrGetMovie(movieId) {
 
   return movie;
 } catch (error) {
-  console.error('Error updating or getting movie: ', error);
   throw error;
 }
 }
@@ -59,7 +63,7 @@ app.get("/genre/:genre", async (req, res) => {
     const response = await axios.get(apiUrl);
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch data" });
+    res.status(400).json({ error: "Failed to fetch data" });
   }
 });
 
@@ -87,12 +91,15 @@ app.get("/search", async (req, res) => {
 //Route used to get a specific movie's info for media screen
 app.get("/movie/:id", async (req, res) => {
   const movieID = req.params.id;
-
   try {
     const movie = await updateOrGetMovie(movieID)
-    res.json(movie);
+    const comments = await Comment.find({ movie: movie._id });
+    res.json({
+      movie,
+      comments
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: 'Failed  to get movie.' });
   }
 });
 

@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 const Row = ({title, fetchUrl}) => {
 
     const [movies, setMovies] = useState([]);
+    const [error, setError] = useState(null)
     const baseUrl = 'https://image.tmdb.org/t/p/original';
     const navigate = useNavigate();
 
@@ -15,13 +16,21 @@ const Row = ({title, fetchUrl}) => {
     useEffect(() => {
 
         async function fetchData() {
-            const request = await axios.get(`/genre/${title}`);
-            setMovies(request.data.results);
-            return request;
+            try{
+                const request = await axios.get(`/genre/${title}`);
+                setMovies(request.data.results);
+
+            }catch (error){
+                setError(error)
+            }
         }
 
         fetchData();
     }, [title])
+
+    if(error || movies.length === 0){
+        return null;
+    }
 
   return (
     <div className='bg-dark d-flex flex-column p-2 pb-4'>

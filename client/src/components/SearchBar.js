@@ -34,6 +34,7 @@ const SearchBar = () => {
             setLoading(false)
         }catch(e){
             setLoading(false)
+            setSearchResults([])
         }
     }
 

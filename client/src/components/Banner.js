@@ -8,18 +8,28 @@ import { useNavigate } from "react-router-dom";
 
 const Banner = () => {
   const [movies, setMovies] = useState([]);
+  const [error, setError] = useState(null);
   const baseUrl = "https://image.tmdb.org/t/p/original";
   const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchData() {
-      const request = await axios.get(`/genre/Popular`);
-      setMovies(request.data.results);
-      return request;
+      try{
+        const request = await axios.get(`/genre/Popular`);
+        setMovies(request.data.results);
+
+      }catch(error){
+        setError(error)
+      }
     }
 
     fetchData();
   }, []);
+
+  if (error || movies.length === 0){
+    return null;
+  }
+
 
   return (
     <Carousel

@@ -103,8 +103,8 @@ const ProfileScreen = () => {
 
   return (
     <>
-      <NavbarComponent></NavbarComponent>
-      <div className="d-flex flex-column  align-items-center vh-100 bg-dark">
+      <NavbarComponent />
+      <div className="d-flex flex-column align-items-center bg-dark">
         {userVerified ? (
           <></>
         ) : (

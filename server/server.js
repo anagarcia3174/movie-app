@@ -98,9 +98,20 @@ app.get("/movie/:id", async (req, res) => {
   try {
     const movie = await updateOrGetMovie(movieID);
     const comments = await Comment.find({ movie: movie._id });
+
+    const userPromises = comments.map(comment => 
+      admin.auth().getUser(comment.userId).then(userRecord => ({
+        displayName: userRecord.displayName,
+        photoURL: userRecord.photoURL,
+        ...comment._doc
+      }))
+    )
+
+    const commentsWithUserData = await Promise.all(userPromises);
+
     res.json({
       movie,
-      comments,
+      comments: commentsWithUserData,
     });
   } catch (error) {
     res.status(400).json({ error: "Failed  to get movie." });

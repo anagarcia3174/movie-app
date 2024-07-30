@@ -10,7 +10,7 @@ const admin = require("firebase-admin");
 const app = express();
 const port = process.env.PORT || 3030;
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-
+const { ObjectId } = mongoose.Types;
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -133,6 +133,23 @@ app.post("/comments", async (req, res) => {
     res.status(400).json({ error: "Failed to post comment." });
   }
 });
+
+app.delete("/comments/:id", async (req, res) => {
+  try{
+    const id = req.params.id;
+
+    const result = await Comment.deleteOne({ _id: new ObjectId(`${id}`)})
+
+    if(!result){
+      return res.status(404).json({ message: 'Comment not found'})
+    }
+
+    return res.status(200).send({ message: 'Comment deleted successfully!'})
+
+  }catch (error){
+    res.status(400).json({ error: "Failed to delete comment." });
+  }
+})
 
 mongoose
   .connect(process.env.MONGODB_ATLAS_URI)

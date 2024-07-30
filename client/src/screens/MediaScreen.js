@@ -15,6 +15,7 @@ import Image from "react-bootstrap/Image";
 import Alert from "react-bootstrap/Alert";
 import Spinner from "react-bootstrap/Spinner";
 import "../components/styles.css";
+import Dropdown from "react-bootstrap/Dropdown";
 
 const MediaScreen = () => {
   const { id } = useParams();
@@ -27,7 +28,11 @@ const MediaScreen = () => {
   const [error, setError] = useState(false);
   const [postError, setPostError] = useState("");
   const [postLoading, setPostLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
   const rangeInputRef = useRef(null);
+  const controlHoursRef = useRef(null);
+  const controllMinutesRef = useRef(null);
+  const controlSecondsRef = useRef(null);
   const user = useSelector(selectUser);
   const navigate = useNavigate();
 
@@ -93,8 +98,8 @@ const MediaScreen = () => {
   };
 
   const submitComment = async () => {
-    if(!user){
-      setPostError('You need to be logged in to comment!')
+    if (!user) {
+      setPostError("You need to be logged in to comment!");
       return;
     }
     if (input.trim().length === 0) {
@@ -136,9 +141,9 @@ const MediaScreen = () => {
   };
 
   const inputTimestampChange = () => {
-    const hours = parseInt(document.getElementById("hours").value, 10) || 0;
-    const minutes = parseInt(document.getElementById("minutes").value, 10) || 0;
-    const seconds = parseInt(document.getElementById("seconds").value, 10) || 0;
+    const hours = parseInt(controlHoursRef.current.value, 10) || 0;
+    const minutes = parseInt(controllMinutesRef.current.value, 10) || 0;
+    const seconds = parseInt(controlSecondsRef.current.value, 10) || 0;
 
     const newTimestamp = hours * 3600 + minutes * 60 + seconds;
     setTimestamp(newTimestamp);
@@ -152,6 +157,15 @@ const MediaScreen = () => {
     setPostError("");
   };
 
+  const deleteComment = async (commentId) => {
+    try {
+      await axios.delete(`/comments/${commentId}`);
+
+      await fetchComments();
+    } catch(error){
+      setPostError("Error deleting comment. Please try again later.")
+    }
+  };
   return (
     <>
       <div
@@ -175,6 +189,7 @@ const MediaScreen = () => {
                 max={parseInt(movie?.runtime / 60)}
                 value={parseInt(timestamp / 3600)}
                 onChange={inputTimestampChange}
+                ref={controlHoursRef}
               />
               <span className="mx-1 text-light">:</span>
               <Form.Control
@@ -185,6 +200,7 @@ const MediaScreen = () => {
                 min={0}
                 max={59}
                 onChange={inputTimestampChange}
+                ref={controllMinutesRef}
               />
               <span className="mx-1 text-light">:</span>
               <Form.Control
@@ -195,6 +211,7 @@ const MediaScreen = () => {
                 min={0}
                 max={59}
                 onChange={inputTimestampChange}
+                ref={controlSecondsRef}
               />
             </Col>
             <Col className="d-flex align-items-center">
@@ -229,11 +246,27 @@ const MediaScreen = () => {
                     <h4>{comment.displayName}</h4>
                     <h6 className="text-start">{comment.content}</h6>
                   </Col>
+                  {comment.userId === user.uid ? (
+                    <Col
+                      lg="1"
+                      md="1"
+                      sm="2"
+                      xs="2"
+                      className="d-flex justify-content-end align-self-start pt-3 "
+                    >
+                      <Dropdown drop='start' className="d-flex justify-content-center align-items-center ">
+                        <Dropdown.Toggle className="bg-transparent border-0 ">
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => deleteComment(comment._id)}>Delete</Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </Col>
+                  ) : <></>}
                 </Row>
               </Container>
             ))}
           </Container>
-
         </Container>
         <Container fluid="md" className=" bg-dark py-3">
           {postError.length !== 0 ? (

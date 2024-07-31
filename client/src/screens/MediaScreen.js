@@ -28,7 +28,6 @@ const MediaScreen = () => {
   const [error, setError] = useState(false);
   const [postError, setPostError] = useState("");
   const [postLoading, setPostLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
   const rangeInputRef = useRef(null);
   const controlHoursRef = useRef(null);
   const controllMinutesRef = useRef(null);
@@ -246,7 +245,7 @@ const MediaScreen = () => {
                     <h4>{comment.displayName}</h4>
                     <h6 className="text-start">{comment.content}</h6>
                   </Col>
-                  {comment.userId === user.uid ? (
+                  {comment.userId === user?.uid ? (
                     <Col
                       lg="1"
                       md="1"

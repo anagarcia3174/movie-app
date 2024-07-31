@@ -40,11 +40,12 @@ const SearchBar = () => {
     <>
       <Form
         onSubmit={(e) => searchMovie(e)}
-        className="d-flex justify-content-center align-items-center flex-grow-1"
+        className="d-flex justify-content-center align-items-center mt-2"
       >
         <Form.Control
           placeholder="Search"
-          className="w-25"
+          className=""
+          style={{maxWidth: '200px'}}
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />

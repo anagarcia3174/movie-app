@@ -171,7 +171,7 @@ const MediaScreen = () => {
         className="vh-100 bg-dark background-image d-flex flex-column align-items-center justify-content-center"
         style={backgroundStyle}
       >
-        <Container fluid="md" className="bg-dark d-flex flex-column h-75">
+        <Container fluid="md" className="bg-dark d-flex flex-column" style={{ maxHeight: '75vh'}}>
           <Row className="p-3">
             <Col className="text-light text-start d-flex flex-column align-items-start ">
               <h1>{movie?.title || movie?.name || movie?.original_title}</h1>

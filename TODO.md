@@ -5,6 +5,7 @@
 - [ ] Refactor MediaScreen.js
 - [x] Make comment input box responsive to comment section length (MediaScreen)
 - [ ] Add play button (MediaScreen)
+- [x] Restrict commenting to verified users
 
 # Future Features
 - Like/Dislike comments

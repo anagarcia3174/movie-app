@@ -11,6 +11,7 @@ import { auth } from "../services/firebase";
 import Alert from "react-bootstrap/Alert";
 import errorMessages from "../services/firebase";
 import Spinner from "react-bootstrap/Spinner";
+import { useNavigate } from 'react-router-dom'
 
 const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +19,8 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
   const [password, setPassword] = useState("");
   const [errorAlert, setErrorAlert] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
 
   const handleToggleIsMember = () => {
     setIsMember((prevIsMember) => !prevIsMember);
@@ -58,6 +61,7 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
       .then((userCredential) => {
         setIsLoading(false);
         onHide();
+        navigate('/profile')
       })
       .catch((error) => {
         setIsLoading(false);
@@ -80,6 +84,7 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
       .then((userCredential) => {
         setIsLoading(false);
         onHide();
+        navigate('/profile')
       })
       .catch((error) => {
         setIsLoading(false);

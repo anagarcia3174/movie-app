@@ -33,7 +33,7 @@ const ProfileScreen = () => {
   useEffect(() => {
     const checkVerificationStatus = async () => {
       await auth.currentUser.reload();
-      if (auth.currentUser.emailVerified) {
+      if (auth.currentUser?.emailVerified) {
         setUserVerified(true);
         dispatch(verifyUserProfile());
       }
@@ -100,7 +100,6 @@ const ProfileScreen = () => {
         );
       });
   };
-
   return (
     <>
       <NavbarComponent />

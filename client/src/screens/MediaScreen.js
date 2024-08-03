@@ -101,6 +101,10 @@ const MediaScreen = () => {
       setPostError("You need to be logged in to comment!");
       return;
     }
+    if(user && !user.emailVerified){
+      setPostError("You must verify your email to comment.");
+      return;
+    }
     if (input.trim().length === 0) {
       setPostError("Cannot post empty comment!");
       return;

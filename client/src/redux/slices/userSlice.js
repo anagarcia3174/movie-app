@@ -15,13 +15,14 @@ export const userSlice = createSlice({
       state.user = null;
     },
     updateUserProfile: (state, action) => {
-      const { photoURL, displayName, email } = action.payload;
+      const { photoURL, displayName, email, emailVerified } = action.payload;
       if (state.user) {
         state.user = {
           ...state.user,
           photoURL: photoURL || state.user.photoURL,
           displayName: displayName || state.user.displayName,
           email: email || state.user.email,
+          emailVerified: emailVerified || state.user.emailVerified,
         };
       }
     },
@@ -29,7 +30,7 @@ export const userSlice = createSlice({
       if (state.user) {
         state.user = {
           ...state.user,
-          verified: true,
+          emailVerified: true,
         };
       }
     },

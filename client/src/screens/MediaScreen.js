@@ -16,6 +16,8 @@ import Alert from "react-bootstrap/Alert";
 import Spinner from "react-bootstrap/Spinner";
 import "../components/styles.css";
 import Dropdown from "react-bootstrap/Dropdown";
+import { FaPlay, FaPause } from "react-icons/fa";
+
 
 const MediaScreen = () => {
   const { id } = useParams();
@@ -28,6 +30,7 @@ const MediaScreen = () => {
   const [error, setError] = useState(false);
   const [postError, setPostError] = useState("");
   const [postLoading, setPostLoading] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const rangeInputRef = useRef(null);
   const controlHoursRef = useRef(null);
   const controllMinutesRef = useRef(null);
@@ -63,6 +66,29 @@ const MediaScreen = () => {
       navigate("/");
     }
   }, [error, navigate]);
+
+  useEffect(() => {
+    let intervalId;
+
+    if (playing && timestamp < movie?.runtime * 60) {
+      intervalId = setInterval(() => {
+        setTimestamp(prevTimestamp => {
+          const newTimestamp = prevTimestamp + 1;
+          if (newTimestamp >= movie?.runtime * 60) {
+            setPlaying(false);
+            return movie.runtime * 60;
+          }
+          return newTimestamp;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [playing, timestamp, movie?.runtime]);
 
   const backgroundStyle = movie?.backdrop_path
     ? {
@@ -128,6 +154,10 @@ const MediaScreen = () => {
     }
   };
 
+  const togglePlay = () => {
+    setPlaying((prevPlaying) => !prevPlaying)
+  }
+
   const fetchComments = async () => {
     try {
       const request = await axios.get(`/movie/${id}`);
@@ -169,6 +199,10 @@ const MediaScreen = () => {
       setPostError("Error deleting comment. Please try again later.")
     }
   };
+
+  const formatTimeValue =  (value) => {
+    return value.toString().padStart(2, '0')
+  }
   return (
     <>
       <div
@@ -182,42 +216,13 @@ const MediaScreen = () => {
               <h6 className="w-50">{formatString(movie?.overview)}</h6>
             </Col>
           </Row>
-          <Row className="px-3 py-2">
-            <Col lg="2" xs="6" className="d-flex align-items-center">
-              <Form.Control
-                className="bg-transparent border-0 w-auto text-light text-end time-input"
-                id="hours"
-                type="number"
-                min={0}
-                max={parseInt(movie?.runtime / 60)}
-                value={parseInt(timestamp / 3600)}
-                onChange={inputTimestampChange}
-                ref={controlHoursRef}
-              />
-              <span className="mx-1 text-light">:</span>
-              <Form.Control
-                className="bg-transparent w-auto border-0 text-light time-input"
-                id="minutes"
-                type="number"
-                value={parseInt((timestamp % 3600) / 60)}
-                min={0}
-                max={59}
-                onChange={inputTimestampChange}
-                ref={controllMinutesRef}
-              />
-              <span className="mx-1 text-light">:</span>
-              <Form.Control
-                className="bg-transparent w-auto border-0 text-light time-input"
-                id="seconds"
-                type="number"
-                value={parseInt(timestamp % 60)}
-                min={0}
-                max={59}
-                onChange={inputTimestampChange}
-                ref={controlSecondsRef}
-              />
-            </Col>
+          <Row className="py-2">
             <Col className="d-flex align-items-center">
+            <Button onClick={togglePlay} className="bg-transparent border-0 d-flex border">
+              {
+                playing ? <FaPause /> : <FaPlay />
+              }
+              </Button>
               <Form.Range
                 min={0}
                 max={`${movie?.runtime * 60}`}
@@ -226,6 +231,41 @@ const MediaScreen = () => {
                 onChange={handleTimestampChange}
                 ref={rangeInputRef}
               />
+            </Col>
+            <Col lg="2" xs="6" className="d-flex align-items-center w-auto">
+              <Form.Control
+                className="bg-transparent w-auto border-0 text-light time-input form-control-sm fw-bold"
+                id="hours"
+                type="number"
+                min={0}
+                max={60}
+                value={formatTimeValue(parseInt(timestamp / 3600))}
+                onChange={inputTimestampChange}
+                ref={controlHoursRef}
+              />
+              <span className="mx-1 text-light">:</span>
+              <Form.Control
+                className="bg-transparent w-auto border-0 text-light time-input form-control-sm fw-bold"
+                id="minutes"
+                type="number"
+                value={formatTimeValue(parseInt((timestamp % 3600) / 60))}
+                min={0}
+                max={59}
+                onChange={inputTimestampChange}
+                ref={controllMinutesRef}
+              />
+              <span className="mx-1 text-light">:</span>
+              <Form.Control
+                className="bg-transparent w-auto border-0 text-light time-input form-control-sm fw-bold"
+                id="seconds"
+                type="number"
+                value={formatTimeValue(parseInt(timestamp % 60))}
+                min={0}
+                max={59}
+                onChange={inputTimestampChange}
+                ref={controlSecondsRef}
+              />
+              
             </Col>
           </Row>
           <Container

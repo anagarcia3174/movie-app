@@ -42,7 +42,15 @@ const ProfileScreen = () => {
     checkVerificationStatus();
   }, [dispatch]);
 
-  const handleProfileUrlChange = (e) => {
+  const validateImageUrl = async (url) => {
+    if (!url) return false;
+  const pattern = new RegExp('^https?:\\/\\/.+\\.(png|jpg|jpeg|bmp|gif|webp)$', 'i');
+  return pattern.test(url);
+  }
+
+  const handleProfileUrlChange = async (e) => {
+    
+
     setProfilePicture(e.target.value);
     setalertText("");
   };
@@ -51,7 +59,7 @@ const ProfileScreen = () => {
     setalertText("");
   };
 
-  const handleProfileUpdate = (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
 
     if (!profilePicture || !displayName) {
@@ -60,11 +68,20 @@ const ProfileScreen = () => {
       return;
     }
 
+    const isValidImage = await validateImageUrl(profilePicture);
+
+    if(!isValidImage){
+      setAlertVariant('danger');
+      setalertText("The URL is not a valid image. Try a different one.");
+      return;
+    }
+
     if (user.photoURL === profilePicture && user.displayName === displayName) {
       setAlertVariant("warning");
       setalertText("No changes were made.");
       return;
     }
+
     updateProfile(auth.currentUser, {
       displayName: displayName,
       photoURL: profilePicture,

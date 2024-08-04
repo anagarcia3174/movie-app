@@ -20,9 +20,8 @@ admin.initializeApp({
 });
 
 app.use(express.json());
-app.use(cors({
-  origin: process.env.VERCEL_CLIENT_URL
-}));
+app.use(cors());
+
 
 async function updateOrGetMovie(movieId) {
   try {

@@ -15,20 +15,16 @@ const connectDB = require('./db/db')
 
 connectDB();
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
+app.use(cors({
+  origin: `${process.env.VERCEL_CLIENT_URL}`,
+  methods: ["POST", "GET", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
-app.use(
-  cors({ origin: `${proces.env.VERCEL_CLIENT_URL}`,
-    credentials: true,
-    methods: ['GET','POST','HEAD','PUT','PATCH','DELETE'],})
-);
-
-
 
 async function updateOrGetMovie(movieId) {
   try {

@@ -15,9 +15,11 @@ const connectDB = require('./db/db')
 
 connectDB();
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 app.use(express.json());
 app.use(

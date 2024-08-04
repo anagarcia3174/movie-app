@@ -71,6 +71,10 @@ app.get("/genre/:genre", async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('server is running')
+})
+
 //Route used for searching for movies
 app.get("/search", async (req, res) => {
   const keyword = req.query.keyword;

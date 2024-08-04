@@ -33,7 +33,7 @@ const Row = ({ title, fetchUrl }) => {
     };
   }, [scrollInterval]);
 
-  if (error || movies.length === 0) {
+  if (error || movies?.length === 0) {
     return null;
   }
 

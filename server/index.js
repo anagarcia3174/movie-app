@@ -20,7 +20,13 @@ admin.initializeApp({
 });
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://movie-app-client-seven.vercel.app",
+  })
+);
+app.options('*', cors());
+
 
 
 async function updateOrGetMovie(movieId) {

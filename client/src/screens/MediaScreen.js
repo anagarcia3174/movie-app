@@ -16,7 +16,7 @@ import Alert from "react-bootstrap/Alert";
 import Spinner from "react-bootstrap/Spinner";
 import "../components/styles.css";
 import Dropdown from "react-bootstrap/Dropdown";
-import { FaPlay, FaPause } from "react-icons/fa";
+import { FaPlay, FaPause, FaArrowLeft } from "react-icons/fa";
 
 
 const MediaScreen = () => {
@@ -209,6 +209,11 @@ const MediaScreen = () => {
         className="vh-100 bg-dark background-image d-flex flex-column align-items-center justify-content-center"
         style={backgroundStyle}
       >
+
+    <Button className="position-absolute top-0 start-0 m-2 bg-transparent border-0" onClick={() => navigate(-1)} >
+      <FaArrowLeft size={25}/>
+    </Button>
+
         <Container fluid="md" className="bg-dark d-flex flex-column" style={{ maxHeight: '75vh'}}>
           <Row className="p-3">
             <Col className="text-light text-start d-flex flex-column align-items-start ">

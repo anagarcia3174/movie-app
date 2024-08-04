@@ -63,3 +63,33 @@
 .time-input {
   -moz-appearance: textfield;
 }
+
+.fixed-left, .fixed-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35px; 
+  background-color: rgba(0, 0, 0, 0.789); 
+  color: rgb(93, 89, 89);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fixed-left {
+  left: 0;
+}
+
+.fixed-right {
+  right: 0;
+}
+
+.position-relative:hover .fixed-left {
+  opacity: 1;
+}
+.position-relative:hover .fixed-right {
+  opacity: 1;
+}

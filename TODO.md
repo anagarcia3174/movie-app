@@ -6,7 +6,7 @@
 - [x] Make comment input box responsive to comment section length (MediaScreen)
 - [x] Add play button (MediaScreen)
 - [x] Restrict commenting to verified users
-- [ ] Make scrolling through rows easier (Row.js)
+- [x] Make scrolling through rows easier (Row.js)
 
 # Future Features
 - Like/Dislike comments

@@ -21,11 +21,10 @@ admin.initializeApp({
 
 app.use(express.json());
 app.use(
-  cors({
-    origin: "https://movie-app-client-seven.vercel.app",
-  })
+  cors({ origin: `${proces.env.VERCEL_CLIENT_URL}`,
+    credentials: true,
+    methods: ['GET','POST','HEAD','PUT','PATCH','DELETE'],})
 );
-app.options('*', cors());
 
 
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://192.168.1.248:3030",
+  baseURL: "https://movie-app-server-miyf2ixt5-anas-projects-93313cc1.vercel.app/",
 });
 
 export default instance;

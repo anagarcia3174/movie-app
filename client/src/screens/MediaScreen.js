@@ -135,16 +135,19 @@ const MediaScreen = () => {
       setPostError("Cannot post empty comment!");
       return;
     }
-    const userId = user.uid;
-    const movieId = movie._id;
+    const userId = localStorage.getItem("firebaseId");
+    const movieId = movie.id;
     setPostLoading(true);
+    const headers = {
+      "Authorization": `Bearer ${userId}`
+    }
     try {
       await axios.post("/comments", {
         userId,
         movieId,
         content: input,
         timestamp,
-      });
+      }, {headers});
       setInput("");
       await fetchComments();
     } catch (error) {
@@ -191,8 +194,13 @@ const MediaScreen = () => {
   };
 
   const deleteComment = async (commentId) => {
+    const userId = localStorage.getItem("firebaseId");
+
+    const headers = {
+      "Authorization": `Bearer ${userId}`
+    }
     try {
-      await axios.delete(`/comments/${commentId}`);
+      await axios.delete(`/comments/${commentId}`, {headers});
 
       await fetchComments();
     } catch(error){

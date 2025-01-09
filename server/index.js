@@ -4,7 +4,6 @@ const axios = require("axios");
 const dotenv = require("dotenv").config();
 const tmdbApiUrls = require("./config/tmdbApiUrls");
 const mongoose = require("mongoose");
-const Movie = require("./models/movieModel");
 const Comment = require("./models/commentModel");
 const admin = require("firebase-admin");
 const app = express();
@@ -20,52 +19,45 @@ admin.initializeApp({
 });
 
 app.use(cors({
-  origin: `${process.env.VERCEL_CLIENT_URL}`,
-  methods: ["POST", "GET", "DELETE"],
+  origin: `${process.env.CLIENT_URL}`,
+  methods: ['GET', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 app.use(express.json());
 
-async function updateOrGetMovie(movieId) {
-  try {
-    let movie = await Movie.findOne({ apiId: movieId });
 
-    if (!movie || Date.now() - movie.lastUpdated > 24 * 60 * 60 * 1000) {
-      const apiResponse = await axios.get(tmdbApiUrls.getMovieUrl(movieId));
-      const movieData = apiResponse.data;
+const verifyAuth = async (req, res, next) => {
+  const token = req.headers.authorization?.split('Bearer ')[1];
+  if(!token){
+    return res.status(401).json({ error: 'Unauthorized'})
+  }
 
-      if (!movie) {
-        movie = new Movie({
-          title: `${
-            movieData.title || movieData.name || movieData.original_title
-          }`,
-          apiId: movieData.id.toString(),
-          runtime: movieData.runtime,
-          release_date: movieData.release_date,
-          poster_path: movieData.poster_path,
-          backdrop_path: movieData.backdrop_path,
-          overview: movieData.overview,
-        });
-      } else {
-        movie.title = `${
-          movieData.title || movieData.name || movieData.original_title
-        }`;
-        movie.apiId = movieData.id.toString();
-        movie.runtime = movieData.runtime;
-        movie.release_date = movieData.release_date;
-        movie.poster_path = movieData.poster_path;
-        movie.backdrop_path = movieData.backdrop_path;
-        movie.overview = movieData.overview;
-      }
-
-      await movie.save();
-    }
-
-    return movie;
-  } catch (error) {
-    throw error;
+  try{
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  }catch (error){ 
+    return res.status(401).json({ error: 'Invalid token'})
   }
 }
+
+const verifyCommentOwnership = async (req, res, next) => {
+  try {
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    
+    if (comment.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'Unauthorized to delete this comment' });
+    }
+    
+    next();
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 //Route used to get list of movies (based on Genre) for main screen
 app.get("/genre/:genre", async (req, res) => {
@@ -79,9 +71,6 @@ app.get("/genre/:genre", async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('server is running')
-})
 
 //Route used for searching for movies
 app.get("/search", async (req, res) => {
@@ -108,34 +97,37 @@ app.get("/search", async (req, res) => {
 app.get("/movie/:id", async (req, res) => {
   const movieID = req.params.id;
   try {
-    const movie = await updateOrGetMovie(movieID);
-    const comments = await Comment.find({ movie: movie._id });
+    const movie = await axios.get(tmdbApiUrls.getMovieUrl(movieID));
+    if(!movie){
+      return res.status(404).json({ error: 'Movie not found'})
+    }
+    const comments = await Comment.find({ movieId: movieID.toString() });
 
-    const userPromises = comments.map(comment => 
-      admin.auth().getUser(comment.userId).then(userRecord => ({
-        displayName: userRecord.displayName,
-        photoURL: userRecord.photoURL,
-        ...comment._doc
-      }))
+    const commentsWithUserData = await Promise.all(
+      comments.map(comment => 
+        admin.auth().getUser(comment.userId).then(userRecord => ({
+          displayName: userRecord.displayName,
+          photoURL: userRecord.photoURL,
+          ...comment._doc
+        }))
+      )
     )
 
-    const commentsWithUserData = await Promise.all(userPromises);
-
     res.json({
-      movie,
+      movie: movie.data,
       comments: commentsWithUserData,
     });
   } catch (error) {
-    res.status(400).json({ error: "Failed  to get movie." });
+    res.status(400).json({ error: "Failed to get movie data." });
   }
 });
 
-app.post("/comments", async (req, res) => {
+app.post("/comments", verifyAuth, async (req, res) => {
   try {
-    const { userId, movieId, content, timestamp } = req.body;
+    const { movieId, content, timestamp } = req.body;
     const comment = new Comment({
-      userId,
-      movie: movieId,
+      userId: req.user.uid,
+      movieId,
       content,
       timestamp,
     });
@@ -146,15 +138,9 @@ app.post("/comments", async (req, res) => {
   }
 });
 
-app.delete("/comments/:id", async (req, res) => {
+app.delete("/comments/:id", verifyAuth, verifyCommentOwnership, async (req, res) => {
   try{
-    const id = req.params.id;
-
-    const result = await Comment.deleteOne({ _id: new ObjectId(`${id}`)})
-
-    if(!result){
-      return res.status(404).json({ message: 'Comment not found'})
-    }
+    const result = await Comment.deleteOne({ _id: new ObjectId(req.params.id)})
 
     return res.status(200).send({ message: 'Comment deleted successfully!'})
 
@@ -163,6 +149,39 @@ app.delete("/comments/:id", async (req, res) => {
   }
 })
 
+app.get("/movie/title/:title", async (req,  res) => {
+try{
+  const searchUrl = tmdbApiUrls.getSearchUrl(req.params.title);
+  const searchResponse = await axios.get(searchUrl);
+
+  const movie = searchResponse.data.results[0];
+  if(!movie){
+    return res.status(404).json({ error: 'Movie not found'})
+  }
+
+  const movieResponse = await axios.get(tmdbApiUrls.getMovieUrl(movie.id));
+  const movieData = movieResponse.data;
+
+  const comments = await Comment.find({ movieId: movie.id.toString() });
+    
+    const commentsWithUserData = await Promise.all(
+      comments.map(comment => 
+        admin.auth().getUser(comment.userId).then(userRecord => ({
+          displayName: userRecord.displayName,
+          photoURL: userRecord.photoURL,
+          ...comment._doc
+        }))
+      )
+    );
+
+    res.json({
+      movie: movieData,
+      comments: commentsWithUserData
+    });
+} catch (error){
+  res.status(400).json({ error: "Failed to get movie data" });
+}
+});
 
 
 module.exports = app;

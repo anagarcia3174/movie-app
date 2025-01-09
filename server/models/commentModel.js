@@ -6,9 +6,8 @@ const commentSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    movie: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Movie",
+    movieId: {
+      type: String,
       required: true,
     },
     content: {

@@ -4,6 +4,7 @@ import Row from "../components/Row";
 import "../components/styles.css";
 
 import NavbarComponent from "../components/NavbarComponent";
+import TMDBAttribution from "../components/TMDBAttribution";
 
 function HomeScreen() {
   return (
@@ -16,6 +17,7 @@ function HomeScreen() {
       <Row title="Horror" />
       <Row title="Romance" />
       <Row title="Documentary" />
+      <TMDBAttribution />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import Spinner from "react-bootstrap/Spinner";
 import "../components/styles.css";
 import Dropdown from "react-bootstrap/Dropdown";
 import { FaPlay, FaPause, FaArrowLeft } from "react-icons/fa";
+import { auth } from "../services/firebase";
 
 
 const MediaScreen = () => {
@@ -135,7 +136,7 @@ const MediaScreen = () => {
       setPostError("Cannot post empty comment!");
       return;
     }
-    const userId = localStorage.getItem("firebaseId");
+    const userId = await auth.currentUser.getIdToken();
     const movieId = movie.id;
     setPostLoading(true);
     const headers = {
@@ -194,7 +195,7 @@ const MediaScreen = () => {
   };
 
   const deleteComment = async (commentId) => {
-    const userId = localStorage.getItem("firebaseId");
+    const userId = await auth.currentUser.getIdToken();
 
     const headers = {
       "Authorization": `Bearer ${userId}`

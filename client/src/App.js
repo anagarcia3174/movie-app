@@ -19,9 +19,6 @@ function App() {
     const unsubscribe = auth.onAuthStateChanged(async (userAuth) => {
       if (userAuth) {
 
-        const userId = await userAuth.getIdToken();
-        localStorage.setItem("firebaseId", userId)
-
         dispatch(
           login({
             uid: userAuth.uid,
@@ -32,7 +29,6 @@ function App() {
           })
         );
       } else {
-        localStorage.removeItem("firebaseId");
         dispatch(logout());
       }
       setIsLoading(false);

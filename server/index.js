@@ -19,7 +19,7 @@ admin.initializeApp({
 });
 
 app.use(cors({
-  origin: `${process.env.CLIENT_URL}`,
+  origin: `${process.env.VERCEL_CLIENT_URL}`,
   methods: ['GET', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true

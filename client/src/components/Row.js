@@ -3,8 +3,20 @@ import axios from "../services/axios";
 import Image from "react-bootstrap/Image";
 import "./styles.css";
 import { useNavigate } from "react-router-dom";
+import { memo } from "react";
 
-const Row = ({ title, fetchUrl }) => {
+const MovieImage = memo(({ baseUrl, movie, onClick }) => (
+  <Image
+    onClick={onClick}
+    className="mx-2 poster"
+    src={`${baseUrl}${movie?.poster_path}`}
+    loading="lazy"
+  />
+));
+
+const movieCache = new Map();
+
+const Row = ({ title }) => {
   const [movies, setMovies] = useState([]);
   const [error, setError] = useState(null);
   const [scrollInterval, setScrollInterval] = useState(null);
@@ -14,9 +26,14 @@ const Row = ({ title, fetchUrl }) => {
 
   useEffect(() => {
     async function fetchData() {
+      if (movieCache.has(title)) {
+        setMovies(movieCache.get(title));
+        return;
+      }
       try {
         const request = await axios.get(`/genre/${title}`);
         setMovies(request.data.results);
+        movieCache.set(title, request.data.results); 
       } catch (error) {
         setError(error);
       }
@@ -54,7 +71,9 @@ const Row = ({ title, fetchUrl }) => {
     }
   };
 
-  
+  const handleMovieClick = ((movieId) => {
+    navigate(`/movie/${movieId}`);
+  });
 
   return (
     <div className="bg-dark d-flex flex-column p-2 pb-4">
@@ -62,11 +81,11 @@ const Row = ({ title, fetchUrl }) => {
       <div className="d-flex flex-row position-relative">
       <div  ref={rowRef} className="d-flex flex-row posters-row w-100">
         {movies.map((movie) => (
-          <Image
-            onClick={() => navigate(`/movie/${movie.id}`)}
-            className="mx-2 poster"
+          <MovieImage
             key={movie.id}
-            src={`${baseUrl}${movie?.poster_path}`}
+            baseUrl={baseUrl}
+            movie={movie}
+            onClick={() => handleMovieClick(movie.id)}
           />
         ))}
       </div>

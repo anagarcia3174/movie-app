@@ -19,6 +19,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import { FaPlay, FaPause, FaArrowLeft } from "react-icons/fa";
 import { auth } from "../services/firebase";
 
+const movieCache = new Map();
 
 const MediaScreen = () => {
   const { id } = useParams();
@@ -41,11 +42,23 @@ const MediaScreen = () => {
 
   useEffect(() => {
     async function fetchMovie() {
+      if (movieCache.has(id)) {
+        const cachedData = movieCache.get(id);
+        setMovie(cachedData.movie);
+        setComments(cachedData.comments);
+        setFilteredComments(getComments(cachedData.comments, timestamp));
+      }
       try {
         const request = await axios.get(`/movie/${id}`);
-        setMovie(request.data.movie);
-        setComments(request.data.comments);
-        setFilteredComments(getComments(request.data.comments, timestamp));
+        const fetchedMovie = request.data.movie;
+        const fetchedComments = request.data.comments;
+
+        if (!movieCache.has(id) || movieCache.get(id).comments !== fetchedComments) {
+          setMovie(fetchedMovie);
+          setComments(fetchedComments);
+          setFilteredComments(getComments(fetchedComments, timestamp));
+          movieCache.set(id, { movie: fetchedMovie, comments: fetchedComments });
+        }
         setError(false);
       } catch (e) {
         setError(true);
@@ -219,7 +232,7 @@ const MediaScreen = () => {
         style={backgroundStyle}
       >
 
-    <Button className="position-absolute top-0 start-0 m-2 bg-transparent border-0" onClick={() => navigate(-1)} >
+    <Button className="position-absolute top-0 start-0 m-2 bg-transparent border-0" onClick={() => navigate("/")} >
       <FaArrowLeft size={25}/>
     </Button>
 

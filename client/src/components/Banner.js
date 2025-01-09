@@ -6,6 +6,8 @@ import Button from "react-bootstrap/Button";
 import "./styles.css";
 import { useNavigate } from "react-router-dom";
 
+let movieCache = null;
+
 const Banner = () => {
   const [movies, setMovies] = useState([]);
   const [error, setError] = useState(null);
@@ -14,9 +16,14 @@ const Banner = () => {
 
   useEffect(() => {
     async function fetchData() {
+      if (movieCache) {
+        setMovies(movieCache);
+        return;
+      }
       try {
         const request = await axios.get(`/genre/Popular`);
         setMovies(request.data.results);
+        movieCache = request.data.results;
       } catch (error) {
         setError(error);
       }

@@ -10,6 +10,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useState } from "react";
 import LoadingScreen from "./screens/LoadingScreen";
 import MediaScreen from "./screens/MediaScreen";
+import WelcomeModal from "./components/WelcomeModal";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +44,7 @@ function App() {
 
   return (
     <div className="App">
+      <WelcomeModal />
       <Router>
         <Routes>
           <Route exact path="/" element={<HomeScreen />} />

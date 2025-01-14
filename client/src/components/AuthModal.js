@@ -3,15 +3,14 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-import { auth } from "../services/firebase";
 import Alert from "react-bootstrap/Alert";
-import errorMessages from "../services/firebase";
 import Spinner from "react-bootstrap/Spinner";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
+import {
+  createUser,
+  signIn,
+  sendResetPasswordEmail,
+} from "../services/firebase";
 
 const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +19,7 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
   const [errorAlert, setErrorAlert] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
+  const [alertVariant, setAlertVariant] = useState("danger");
 
   const handleToggleIsMember = () => {
     setIsMember((prevIsMember) => !prevIsMember);
@@ -48,7 +47,7 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
     }
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -57,21 +56,19 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
 
     setIsLoading(true);
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        setIsLoading(false);
-        onHide();
-        navigate('/profile')
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        const errorCode = error.code;
-        const customMessage = errorMessages[errorCode];
-        setErrorAlert(customMessage || "Error. Please try again later.");
-      });
+    try {
+      await createUser(email, password);
+      onHide();
+      navigate("/profile");
+    } catch (error) {
+      setAlertVariant("danger");
+      setErrorAlert(error.message || "Error. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleLogIn = (e) => {
+  const handleLogIn = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -80,18 +77,38 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
 
     setIsLoading(true);
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        setIsLoading(false);
-        onHide();
-        navigate('/profile')
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        const errorCode = error.code;
-        const customMessage = errorMessages[errorCode];
-        setErrorAlert(customMessage || "Error. Please try again later.");
-      });
+    try {
+      await signIn(email, password);
+      onHide();
+      navigate("/");
+    } catch (error) {
+      setAlertVariant("danger");
+      setErrorAlert(error.message || "Error. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (!email || email === "") {
+      setAlertVariant("danger");
+      setErrorAlert("Please enter your email address.");
+      return;
+    }
+
+    try {
+      await sendResetPasswordEmail(email);
+      setAlertVariant("success");
+      setErrorAlert("Password reset email sent. Check your inbox!");
+    } catch (error) {
+      setAlertVariant("danger");
+      setErrorAlert(
+        error.message ||
+          "Error sending you reset password email. Please try again later."
+      );
+    }
   };
 
   return (
@@ -108,11 +125,18 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
           id="contained-modal-title-vcenter"
           className="fw-bolder ms-auto text-light"
         >
-          {isMember ? "Log in to Comments!" : "Sign Up!"}
+          {isMember ? "Log in to " : "Sign Up!"}
+          <strong style={{ color: "#06B2DF" }}>
+            {isMember ? "Comments!" : ""}
+          </strong>
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body className="">
-        {errorAlert ? <Alert variant={"danger"}>{errorAlert}</Alert> : <></>}
+      <Modal.Body className="d-flex flex-column justify-content-between">
+        {errorAlert ? (
+          <Alert variant={alertVariant}>{errorAlert}</Alert>
+        ) : (
+          <></>
+        )}
         <Form>
           <Form.Group className="mb-4">
             <Form.Label className="text-light">Email address</Form.Label>
@@ -128,11 +152,11 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
             <div className="d-flex align-items-center">
               <Form.Control
                 onChange={handlePasswordChange}
-                className="m-2"
                 type={showPassword ? "text" : "password"}
               ></Form.Control>
               {showPassword ? (
                 <FaEyeSlash
+                  className="m-2"
                   size={28}
                   onClick={() => setShowPassword(!showPassword)}
                   fill="white"
@@ -140,11 +164,24 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
               ) : (
                 <FaEye
                   size={28}
+                  className="m-2"
                   onClick={() => setShowPassword(!showPassword)}
                   fill="white"
                 />
               )}
             </div>
+            {isMember ? (
+              <div className="d-flex justify-content-end mt-2">
+                <Button
+                  onClick={handleResetPassword}
+                  style={{ color: "#06B2DF" }}
+                  className="border-0 bg-transparent"
+                >Forgot Password?
+                </Button>
+              </div>
+            ) : (
+              <></>
+            )}
           </Form.Group>
           {isMember ? (
             <Button
@@ -166,17 +203,16 @@ const AuthModal = ({ show, onHide, isMember, setIsMember }) => {
             </Button>
           )}
         </Form>
-        <Button
-          onClick={handleToggleIsMember}
-          style={{ color: "#06B2DF" }}
-          className="w-100 border-0 bg-transparent p-4"
-        >
-          {isMember
-            ? "Don't have an account? Sign up"
-            : "Already a member? Sign In"}
-        </Button>
       </Modal.Body>
-      <Modal.Footer className="border-0 "></Modal.Footer>
+      <Modal.Footer className="border-0 "><Button
+          onClick={handleToggleIsMember}
+          className="w-100 border-0 bg-transparent px-4"
+        >
+          {isMember ? "Don't have an account? " : "Already a member? "}
+          <strong style={{ color: "#06B2DF" }}>
+            {isMember ? "Sign Up!" : "Sign In!"}
+          </strong>
+        </Button></Modal.Footer>
     </Modal>
   );
 };

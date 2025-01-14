@@ -12,11 +12,10 @@ import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import { useState } from "react";
-import { sendEmailVerification, updateProfile } from "firebase/auth";
 import { auth } from "../services/firebase";
 import Alert from "react-bootstrap/Alert";
-import errorMessages from "../services/firebase";
 import NavbarComponent from "../components/NavbarComponent";
+import { sendVerificationEmail, signUserOut, updateUser } from "../services/firebase";
 
 const ProfileScreen = () => {
   const user = useSelector(selectUser);
@@ -76,18 +75,9 @@ const ProfileScreen = () => {
       return;
     }
 
-    if (user.photoURL === profilePicture && user.displayName === displayName) {
-      setAlertVariant("warning");
-      setalertText("No changes were made.");
-      return;
-    }
-
-    updateProfile(auth.currentUser, {
-      displayName: displayName,
-      photoURL: profilePicture,
-    })
-      .then(() => {
-        setAlertVariant("success");
+    try {
+      await updateUser(profilePicture, displayName);
+      setAlertVariant("success");
         setalertText("Profile updated successfully!");
         dispatch(
           updateUserProfile({
@@ -95,32 +85,41 @@ const ProfileScreen = () => {
             displayName: displayName,
           })
         );
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const customMessage = errorMessages[errorCode];
-        setAlertVariant("danger");
-        setalertText(customMessage || "Error. Please try again later.");
-      });
+    }catch (error) {
+      setAlertVariant("danger");
+      setalertText(error.message || "There was an error updating your profile. Please try again ");
+    }
+
   };
 
-  const handleUserVerification = () => {
-    sendEmailVerification(auth.currentUser)
-      .then(() => {
-        setAlertVariant("success");
+  const handleUserVerification = async () => {
+    try{
+      await sendVerificationEmail();
+      setAlertVariant("success");
         setalertText("Verification email sent. Please check your inbox.");
-      })
-      .catch((error) => {
-        setAlertVariant("danger");
-        setalertText(
-          "Error sending verification email. Please try again later."
-        );
-      });
+    }catch (error){
+      setAlertVariant("danger");
+      setalertText(
+       error.message || "There was an error sending the verification email. Please try again later."
+      );
+    }
   };
+
+  const handleSignOut = async () => {
+    try{
+      await signUserOut();
+    }catch(error){
+      setAlertVariant("danger");
+      setalertText(error.message || "There was an error signing out. Please try again later.");
+      
+    }
+  }
+
+  
   return (
     <>
       <NavbarComponent />
-      <div className="d-flex flex-column align-items-center bg-dark vh-100">
+      <div className="d-flex flex-column align-items-center bg-dark min-vh-100">
         {userVerified ? (
           <></>
         ) : (
@@ -195,7 +194,7 @@ const ProfileScreen = () => {
           Save Changes
         </Button>
         <Button
-          onClick={() => auth.signOut()}
+          onClick={handleSignOut}
           className="m-5 w-25"
           variant="danger"
         >

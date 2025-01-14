@@ -6,7 +6,10 @@ import { getAuth,
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider
     } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -106,6 +109,32 @@ export const updateUser = async (profilePictureUrl,  displayName) => {
     })
   } catch(error){
     throw new Error(errorMessages[error.code] || "There was an error updating your profile. Please try again later.");
+  }
+}
+
+export const reauthenticateUser = async (password) => {
+  const user = auth.currentUser;
+  if(!user){
+    throw new Error("No user is currently signed in.");
+  }
+  try{
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+  }catch (error){
+    throw new Error(errorMessages[error.code] || "There was an error authenticating your account. Please try again later.");
+  }
+}
+
+export const deleteUserAccount = async () => {
+  const user = auth.currentUser;
+  if(!user){
+    throw new Error("No user is currently signed in.");
+  }
+  try{
+    await deleteUser(user);
+    await signOut(auth);
+  }catch (error){
+    throw new Error(errorMessages[error.code] || "There was an error deleting your account. Please try again later.");
   }
 }
 

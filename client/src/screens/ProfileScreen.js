@@ -15,7 +15,12 @@ import { useState } from "react";
 import { auth } from "../services/firebase";
 import Alert from "react-bootstrap/Alert";
 import NavbarComponent from "../components/NavbarComponent";
-import { sendVerificationEmail, signUserOut, updateUser } from "../services/firebase";
+import {
+  sendVerificationEmail,
+  signUserOut,
+  updateUser,
+} from "../services/firebase";
+import DeleteAccountModal from "../components/DeleteAccountModal";
 
 const ProfileScreen = () => {
   const user = useSelector(selectUser);
@@ -28,6 +33,7 @@ const ProfileScreen = () => {
   const [userVerified, setUserVerified] = useState(user.verified);
   const [alertVariant, setAlertVariant] = useState("warning");
   const dispatch = useDispatch();
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
 
   useEffect(() => {
     const checkVerificationStatus = async () => {
@@ -43,13 +49,14 @@ const ProfileScreen = () => {
 
   const validateImageUrl = async (url) => {
     if (!url) return false;
-  const pattern = new RegExp('^https?:\\/\\/.+\\.(png|jpg|jpeg|bmp|gif|webp)$', 'i');
-  return pattern.test(url);
-  }
+    const pattern = new RegExp(
+      "^https?:\\/\\/.+\\.(png|jpg|jpeg|bmp|gif|webp)$",
+      "i"
+    );
+    return pattern.test(url);
+  };
 
   const handleProfileUrlChange = async (e) => {
-    
-
     setProfilePicture(e.target.value);
     setalertText("");
   };
@@ -69,8 +76,8 @@ const ProfileScreen = () => {
 
     const isValidImage = await validateImageUrl(profilePicture);
 
-    if(!isValidImage){
-      setAlertVariant('danger');
+    if (!isValidImage) {
+      setAlertVariant("danger");
       setalertText("The URL is not a valid image. Try a different one.");
       return;
     }
@@ -78,44 +85,48 @@ const ProfileScreen = () => {
     try {
       await updateUser(profilePicture, displayName);
       setAlertVariant("success");
-        setalertText("Profile updated successfully!");
-        dispatch(
-          updateUserProfile({
-            photoURL: profilePicture,
-            displayName: displayName,
-          })
-        );
-    }catch (error) {
+      setalertText("Profile updated successfully!");
+      dispatch(
+        updateUserProfile({
+          photoURL: profilePicture,
+          displayName: displayName,
+        })
+      );
+    } catch (error) {
       setAlertVariant("danger");
-      setalertText(error.message || "There was an error updating your profile. Please try again ");
+      setalertText(
+        error.message ||
+          "There was an error updating your profile. Please try again "
+      );
     }
-
   };
 
   const handleUserVerification = async () => {
-    try{
+    try {
       await sendVerificationEmail();
       setAlertVariant("success");
-        setalertText("Verification email sent. Please check your inbox.");
-    }catch (error){
+      setalertText("Verification email sent. Please check your inbox.");
+    } catch (error) {
       setAlertVariant("danger");
       setalertText(
-       error.message || "There was an error sending the verification email. Please try again later."
+        error.message ||
+          "There was an error sending the verification email. Please try again later."
       );
     }
   };
 
   const handleSignOut = async () => {
-    try{
+    try {
       await signUserOut();
-    }catch(error){
+    } catch (error) {
       setAlertVariant("danger");
-      setalertText(error.message || "There was an error signing out. Please try again later.");
-      
+      setalertText(
+        error.message ||
+          "There was an error signing out. Please try again later."
+      );
     }
-  }
+  };
 
-  
   return (
     <>
       <NavbarComponent />
@@ -193,13 +204,30 @@ const ProfileScreen = () => {
         >
           Save Changes
         </Button>
-        <Button
-          onClick={handleSignOut}
-          className="m-5 w-25"
-          variant="danger"
-        >
+        <Button onClick={handleSignOut} className="m-5 w-25" variant="danger">
           Sign Out
         </Button>
+        <div
+          className="px-5 py-4 w-100 d-flex flex-row justify-content-between align-items-center"
+          style={{
+            backgroundColor: "rgba(255, 193, 7, 0.2)",
+          }}
+        >
+          <h3 className="text-light">
+            Danger Zone
+          </h3>
+          <Button
+            onClick={() => setShowDeleteAccountModal(true)}
+            className="w-auto px-5"
+            variant="danger"
+          >
+            Delete Account
+          </Button>
+        </div>
+        <DeleteAccountModal
+          show={showDeleteAccountModal}
+          onHide={() => setShowDeleteAccountModal(false)}
+        />
       </div>
     </>
   );

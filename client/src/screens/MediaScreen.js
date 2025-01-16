@@ -18,6 +18,7 @@ import "../components/styles.css";
 import Dropdown from "react-bootstrap/Dropdown";
 import { FaPlay, FaPause, FaArrowLeft } from "react-icons/fa";
 import { auth } from "../services/firebase";
+import ReportCommentModal from "../components/ReportCommentModal";
 
 const movieCache = new Map();
 
@@ -39,7 +40,8 @@ const MediaScreen = () => {
   const controlSecondsRef = useRef(null);
   const user = useSelector(selectUser);
   const navigate = useNavigate();
-
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedComment,  setSelectedComment] = useState(null);
   useEffect(() => {
     async function fetchMovie() {
       if (movieCache.has(id)) {
@@ -157,7 +159,6 @@ const MediaScreen = () => {
     }
     try {
       await axios.post("/comments", {
-        userId,
         movieId,
         content: input,
         timestamp,
@@ -186,7 +187,8 @@ const MediaScreen = () => {
 
   const getComments = (commentsArray, currentTimeStamp) => {
     return commentsArray.filter((comment) => {
-      return Math.abs(comment.timestamp - currentTimeStamp) <= 20;
+      const timeDiff = currentTimeStamp - comment.timestamp;
+      return timeDiff >= 0 && timeDiff <= 20;
     });
   };
 
@@ -225,6 +227,7 @@ const MediaScreen = () => {
   const formatTimeValue =  (value) => {
     return value.toString().padStart(2, '0')
   }
+
   return (
     <>
       <div
@@ -316,19 +319,23 @@ const MediaScreen = () => {
                     <h4>{comment.displayName}</h4>
                     <h6 className="text-start">{comment.content}</h6>
                   </Col>
-                  {comment.userId === user?.uid ? (
+                  {user != null ? (
                     <Col
                       lg="1"
                       md="1"
                       sm="2"
                       xs="2"
-                      className="d-flex justify-content-end align-self-start pt-3 "
+                      className="d-flex justify-content-end align-self-start pt-3"
                     >
-                      <Dropdown drop='start' className="d-flex justify-content-center align-items-center ">
+                       <Dropdown drop='start' className="d-flex justify-content-center align-items-center">
                         <Dropdown.Toggle className="bg-transparent border-0 ">
                         </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          <Dropdown.Item onClick={() => deleteComment(comment._id)}>Delete</Dropdown.Item>
+                        <Dropdown.Menu >
+                          { comment.userId === user.uid && <Dropdown.Item onClick={() => deleteComment(comment._id)}>Delete</Dropdown.Item>}
+                          {comment.userId !== user.uid && <Dropdown.Item onClick={() => {
+                            setSelectedComment(comment);
+                            setShowReportModal(true);
+                          }} className="bg-danger">Report</Dropdown.Item>}
                         </Dropdown.Menu>
                       </Dropdown>
                     </Col>
@@ -379,6 +386,7 @@ const MediaScreen = () => {
           </Row>
         </Container>
       </div>
+      <ReportCommentModal  show={showReportModal} onHide={() => setShowReportModal(false)} comment={selectedComment}/>
     </>
   );
 };

@@ -10,7 +10,8 @@ const app = express();
 const port = process.env.PORT || 3030;
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 const { ObjectId } = mongoose.Types;
-const connectDB = require('./db/db')
+const connectDB = require('./db/db');
+const Report = require("./models/reportModel");
 
 connectDB();
 
@@ -138,6 +139,26 @@ app.post("/comments", verifyAuth, async (req, res) => {
   }
 });
 
+app.post("/report", verifyAuth, async (req, res) => {
+  try {
+    const { commentId, reason, details } = req.body;
+    const report = new Report({
+      userId: req.user.uid,
+      commentId,
+      reason,
+      details,
+    });
+    await report.save();
+    res.status(201).json({ message: "Report successfuly sent." });
+  } catch (error) {
+    if (error.code === 11000){
+      res.status(400).json({ error: "You have already reported this comment." });
+    }else{
+      res.status(400).json({ error: "Failed to send report." });
+    }
+  }
+});
+
 app.delete("/comments/:id", verifyAuth, verifyCommentOwnership, async (req, res) => {
   try{
     const result = await Comment.deleteOne({ _id: new ObjectId(req.params.id)})
@@ -148,6 +169,22 @@ app.delete("/comments/:id", verifyAuth, verifyCommentOwnership, async (req, res)
     res.status(400).json({ error: "Failed to delete comment." });
   }
 })
+
+app.delete("/deleteAll/:id", verifyAuth, async (req, res) => {
+  try{
+    const userId = req.params.id;
+    if (req.user.uid !== userId){
+      return res.status(403).json({ error:  'Unauthorized to delete this user'});
+    }
+
+    await Comment.deleteMany({ userId: userId });
+
+    res.status(200).json({ message: "Comments deleted successfully"});
+
+  }catch (error) {
+    res.status(500).json({ error: "Failed to delete user." });
+  }
+});
 
 app.get("/movie/title/:title", async (req,  res) => {
 try{
@@ -183,5 +220,16 @@ try{
 }
 });
 
+// mongoose
+//   .connect(process.env.MONGODB_ATLAS_URI)
+//   .then(() => {
+//     console.log("App connected to database");
+//     app.listen(port, () => {
+//       console.log(`Server is running on port ${port}`);
+//     });
+//   })
+//   .catch((error) => {
+//     console.log(error);
+//   });
 
 module.exports = app;

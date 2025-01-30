@@ -20,9 +20,7 @@ const NavbarComponent = () => {
   useEffect(() => {
     async function fetchUser() {
       try{
-        const request = await axios.get('/user', {
-          withCredentials: true
-        });
+        const request = await axios.get('/user');
         console.log(request.data);
       }catch(error){
         console.log(error);

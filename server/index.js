@@ -57,6 +57,7 @@ const verifySession = async (req, res, next) => {
     req.user = decodedClaims;
     next();
   } catch (error) {
+    console.log(error);
     res.status(401).json({ error: "Invalid session" });
   }
 };

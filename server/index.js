@@ -112,7 +112,11 @@ app.post("/auth/session", async (req, res) => {
 });
 
 app.delete("/auth/session", async (req, res) => {
-  res.clearCookie('session');
+  res.clearCookie('session', {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
   res.json({ status: 'success' });
 });
 

@@ -53,7 +53,7 @@ const verifySession = async (req, res, next) => {
   try {
     const decodedClaims = await admin
       .auth()
-      .verifySessionCookie(sessionCookie, true);
+      .verifySessionCookie(session, true);
     req.user = decodedClaims;
     next();
   } catch (error) {

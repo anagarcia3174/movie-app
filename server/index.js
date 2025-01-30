@@ -181,15 +181,8 @@ app.get("/movie/:id", async (req, res) => {
   }
 });
 
-app.get("/comment", verifySession, async (req, res) => {
-  try {
-    res.status(201).json({ message: "Comment successfully posted!", user: req.user, uid: req.user.uid });
-  } catch (error) {
-    res.status(400).json({ error: "Failed to post comment." });
-  }
-});
 
-app.post("/comments", verifyAuth, async (req, res) => {
+app.post("/comments", verifySession, async (req, res) => {
   try {
     const { movieId, content, timestamp } = req.body;
     const comment = new Comment({

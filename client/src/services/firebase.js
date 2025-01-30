@@ -89,8 +89,8 @@ export const signIn = async (email, password) => {
 
 export const signUserOut = async () => {
   try{
-    await removeSession();
     await signOut(auth);
+    await removeSession();
   }catch (error) {
     throw new Error(errorMessages[error.code] || "There was an error signing out. Please try again later.");
   }
@@ -137,6 +137,7 @@ export const deleteUserAccount = async () => {
   try{
     await deleteUser(user);
     await signOut(auth);
+    await removeSession();
   }catch (error){
     throw new Error(errorMessages[error.code] || "There was an error deleting your account. Please try again later.");
   }

@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { React, useEffect, useState } from "react";
 import Navbar from "react-bootstrap/Navbar";
 import { Button } from "react-bootstrap";
 import AuthModal from "../components/AuthModal";
@@ -9,12 +9,27 @@ import { useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
+import axios from "../services/axios"
 
 const NavbarComponent = () => {
   const user = useSelector(selectUser);
   const [inModalShow, setInModalShow] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchUser() {
+      try{
+        const request = await axios.get('/user', {
+          withCredentials: true
+        });
+        console.log(request.data);
+      }catch(error){
+        console.log(error);
+      }
+    }
+    fetchUser();
+  }, [])
 
   return (
     <>

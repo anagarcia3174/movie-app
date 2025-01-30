@@ -11,6 +11,7 @@ import { getAuth,
   reauthenticateWithCredential,
   EmailAuthProvider
     } from "firebase/auth";
+import axios from "./axios";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -71,6 +72,7 @@ export const sendVerificationEmail = async () => {
 export const createUser = async (email, password) => {
  try{
   await createUserWithEmailAndPassword(auth, email, password);
+  await createSession();
  }catch(error){
   throw new Error(errorMessages[error.code] || "There was an error creating your account. Please try again later.");
  }
@@ -79,6 +81,7 @@ export const createUser = async (email, password) => {
 export const signIn = async (email, password) => {
   try{ 
     await signInWithEmailAndPassword(auth, email, password);
+    await createSession();
   }catch (error){
     throw new Error(errorMessages[error.code] || "There was an error signing in. Please try again later.");
   }
@@ -135,6 +138,27 @@ export const deleteUserAccount = async () => {
     await signOut(auth);
   }catch (error){
     throw new Error(errorMessages[error.code] || "There was an error deleting your account. Please try again later.");
+  }
+}
+
+const createSession = async () => {
+  const user = auth.currentUser
+  if (!user){
+    throw new Error("No user is currently signed in.");
+  }
+
+  try {
+    const idToken = await user.getIdToken();
+    const response = await axios.post("/auth/session", {}, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      },
+    });
+    if (!response.data || response.status !== 200) {
+      throw new Error('Failed to create session');
+    }
+  } catch (error) {
+    throw error;
   }
 }
 

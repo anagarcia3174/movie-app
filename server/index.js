@@ -10,8 +10,9 @@ const app = express();
 const port = process.env.PORT || 3030;
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 const { ObjectId } = mongoose.Types;
-const connectDB = require('./db/db');
+const connectDB = require("./db/db");
 const Report = require("./models/reportModel");
+const cookieParser = require("cookie-parser");
 
 connectDB();
 
@@ -26,39 +27,89 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-
+app.use(cookieParser());
 
 const verifyAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
-  if(!token){
-    return res.status(401).json({ error: 'Unauthorized'})
+  const token = req.headers.authorization?.split("Bearer ")[1];
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
-  try{
+  try {
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.user = decodedToken;
     next();
-  }catch (error){ 
-    return res.status(401).json({ error: 'Invalid token'})
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid token" });
   }
-}
+};
+
+const verifySession = async (req, res, next) => {
+  const session = req.cookies.session;
+  if (!session) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const decodedClaims = await admin
+      .auth()
+      .verifySessionCookie(sessionCookie, true);
+    req.user = decodedClaims;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: "Invalid session" });
+  }
+};
 
 const verifyCommentOwnership = async (req, res, next) => {
   try {
     const comment = await Comment.findById(req.params.id);
     if (!comment) {
-      return res.status(404).json({ error: 'Comment not found' });
+      return res.status(404).json({ error: "Comment not found" });
     }
-    
+
     if (comment.userId !== req.user.uid) {
-      return res.status(403).json({ error: 'Unauthorized to delete this comment' });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized to delete this comment" });
     }
-    
+
     next();
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 };
+
+app.post("/auth/session", async (req, res) => {
+  const idToken = req.headers.authorization?.split("Bearer ")[1];
+  if (!idToken) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  try {
+    // Verify the Firebase ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    // Create session cookie (14 days expiry)
+    const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14 days
+    const sessionCookie = await admin
+      .auth()
+      .createSessionCookie(idToken, { expiresIn });
+
+    // Set cookie with appropriate security options
+    res.cookie("session", sessionCookie, {
+      maxAge: expiresIn,
+      httpOnly: true,
+      sameSite: "none", 
+      secure: true, 
+      expires: new Date(Date.now() + expiresIn),
+    });
+
+    res.json({ status: "success" });
+  } catch (error) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+});
 
 //Route used to get list of movies (based on Genre) for main screen
 app.get("/genre/:genre", async (req, res) => {
@@ -71,7 +122,6 @@ app.get("/genre/:genre", async (req, res) => {
     res.status(400).json({ error: "Failed to fetch data" });
   }
 });
-
 
 //Route used for searching for movies
 app.get("/search", async (req, res) => {
@@ -99,20 +149,23 @@ app.get("/movie/:id", async (req, res) => {
   const movieID = req.params.id;
   try {
     const movie = await axios.get(tmdbApiUrls.getMovieUrl(movieID));
-    if(!movie){
-      return res.status(404).json({ error: 'Movie not found'})
+    if (!movie) {
+      return res.status(404).json({ error: "Movie not found" });
     }
     const comments = await Comment.find({ movieId: movieID.toString() });
 
     const commentsWithUserData = await Promise.all(
-      comments.map(comment => 
-        admin.auth().getUser(comment.userId).then(userRecord => ({
-          displayName: userRecord.displayName,
-          photoURL: userRecord.photoURL,
-          ...comment._doc
-        }))
+      comments.map((comment) =>
+        admin
+          .auth()
+          .getUser(comment.userId)
+          .then((userRecord) => ({
+            displayName: userRecord.displayName,
+            photoURL: userRecord.photoURL,
+            ...comment._doc,
+          }))
       )
-    )
+    );
 
     res.json({
       movie: movie.data,
@@ -151,73 +204,89 @@ app.post("/report", verifyAuth, async (req, res) => {
     await report.save();
     res.status(201).json({ message: "Report successfuly sent." });
   } catch (error) {
-    if (error.code === 11000){
-      res.status(400).json({ error: "You have already reported this comment." });
-    }else{
+    if (error.code === 11000) {
+      res
+        .status(400)
+        .json({ error: "You have already reported this comment." });
+    } else {
       res.status(400).json({ error: "Failed to send report." });
     }
   }
 });
 
-app.delete("/comments/:id", verifyAuth, verifyCommentOwnership, async (req, res) => {
-  try{
-    const result = await Comment.deleteOne({ _id: new ObjectId(req.params.id)})
+app.delete(
+  "/comments/:id",
+  verifyAuth,
+  verifyCommentOwnership,
+  async (req, res) => {
+    try {
+      const result = await Comment.deleteOne({
+        _id: new ObjectId(req.params.id),
+      });
 
-    return res.status(200).send({ message: 'Comment deleted successfully!'})
-
-  }catch (error){
-    res.status(400).json({ error: "Failed to delete comment." });
+      return res.status(200).send({ message: "Comment deleted successfully!" });
+    } catch (error) {
+      res.status(400).json({ error: "Failed to delete comment." });
+    }
   }
-})
+);
 
 app.delete("/deleteAll/:id", verifyAuth, async (req, res) => {
-  try{
+  try {
     const userId = req.params.id;
-    if (req.user.uid !== userId){
-      return res.status(403).json({ error:  'Unauthorized to delete this user'});
+    if (req.user.uid !== userId) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized to delete this user" });
     }
 
     await Comment.deleteMany({ userId: userId });
 
-    res.status(200).json({ message: "Comments deleted successfully"});
-
-  }catch (error) {
+    res.status(200).json({ message: "Comments deleted successfully" });
+  } catch (error) {
     res.status(500).json({ error: "Failed to delete user." });
   }
 });
 
-app.get("/movie/title/:title", async (req,  res) => {
-try{
-  const searchUrl = tmdbApiUrls.getSearchUrl(req.params.title);
-  const searchResponse = await axios.get(searchUrl);
+app.get("/movie/title/:title", async (req, res) => {
+  try {
+    const searchUrl = tmdbApiUrls.getSearchUrl(req.params.title);
+    const searchResponse = await axios.get(searchUrl);
 
-  const movie = searchResponse.data.results[0];
-  if(!movie){
-    return res.status(404).json({ error: 'Movie not found'})
-  }
+    const movie = searchResponse.data.results[0];
+    if (!movie) {
+      return res.status(404).json({ error: "Movie not found" });
+    }
 
-  const movieResponse = await axios.get(tmdbApiUrls.getMovieUrl(movie.id));
-  const movieData = movieResponse.data;
+    const movieResponse = await axios.get(tmdbApiUrls.getMovieUrl(movie.id));
+    const movieData = movieResponse.data;
 
-  const comments = await Comment.find({ movieId: movie.id.toString() });
-    
+    const comments = await Comment.find({ movieId: movie.id.toString() });
+
     const commentsWithUserData = await Promise.all(
-      comments.map(comment => 
-        admin.auth().getUser(comment.userId).then(userRecord => ({
-          displayName: userRecord.displayName,
-          photoURL: userRecord.photoURL,
-          ...comment._doc
-        }))
+      comments.map((comment) =>
+        admin
+          .auth()
+          .getUser(comment.userId)
+          .then((userRecord) => ({
+            displayName: userRecord.displayName,
+            photoURL: userRecord.photoURL,
+            ...comment._doc,
+          }))
       )
     );
 
     res.json({
       movie: movieData,
-      comments: commentsWithUserData
+      comments: commentsWithUserData,
     });
-} catch (error){
-  res.status(400).json({ error: "Failed to get movie data" });
-}
+  } catch (error) {
+    res.status(400).json({ error: "Failed to get movie data" });
+  }
+});
+
+app.get("/user", verifySession, async (req, res) => {
+  res.json({ message: "This is protected data", user: req.user });
 });
 
 // mongoose

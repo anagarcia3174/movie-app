@@ -44,6 +44,8 @@ const MediaScreen = () => {
   const [selectedComment,  setSelectedComment] = useState(null);
   useEffect(() => {
     async function fetchMovie() {
+      const test = await axios.get("/comment");
+      console.log(test);
       if (movieCache.has(id)) {
         const cachedData = movieCache.get(id);
         setMovie(cachedData.movie);
@@ -151,18 +153,14 @@ const MediaScreen = () => {
       setPostError("Cannot post empty comment!");
       return;
     }
-    const userId = await auth.currentUser.getIdToken();
     const movieId = movie.id;
     setPostLoading(true);
-    const headers = {
-      "Authorization": `Bearer ${userId}`
-    }
     try {
       await axios.post("/comments", {
         movieId,
         content: input,
         timestamp,
-      }, {headers});
+      });
       setInput("");
       await fetchComments();
     } catch (error) {

@@ -89,6 +89,7 @@ export const signIn = async (email, password) => {
 
 export const signUserOut = async () => {
   try{
+    await removeSession();
     await signOut(auth);
   }catch (error) {
     throw new Error(errorMessages[error.code] || "There was an error signing out. Please try again later.");
@@ -148,7 +149,7 @@ const createSession = async () => {
   }
 
   try {
-    const idToken = await user.getIdToken();
+    const idToken = await user.getIdToken(true);
     const response = await axios.post("/auth/session", {}, {
       headers: {
         'Authorization': `Bearer ${idToken}`
@@ -161,6 +162,31 @@ const createSession = async () => {
     throw error;
   }
 }
+
+const removeSession = async () => {
+  try{
+    const response = await axios.delete("/auth/session");
+    if (!response.data || response.status !== 200){
+      throw new Error('Failed to delete session');
+    }
+  }catch (error){
+    throw error;
+  }
+}
+
+export const checkAndRefreshSession = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("No user is currently signed in.");
+  }
+
+  try {
+    await user.getIdToken(true);
+    return createSession();
+  } catch (error) {
+    throw new Error("Session refresh failed. Please sign in again.");
+  }
+};
 
 
 export default errorMessages;

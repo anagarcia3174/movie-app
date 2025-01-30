@@ -57,7 +57,6 @@ const verifySession = async (req, res, next) => {
     req.user = decodedClaims;
     next();
   } catch (error) {
-    console.log(error);
     res.status(401).json({ error: "Invalid session" });
   }
 };
@@ -110,6 +109,11 @@ app.post("/auth/session", async (req, res) => {
   } catch (error) {
     res.status(401).json({ error: "Invalid token" });
   }
+});
+
+app.delete("/auth/session", async (req, res) => {
+  res.clearCookie('session');
+  res.json({ status: 'success' });
 });
 
 //Route used to get list of movies (based on Genre) for main screen
@@ -174,6 +178,14 @@ app.get("/movie/:id", async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ error: "Failed to get movie data." });
+  }
+});
+
+app.get("/comment", verifySession, async (req, res) => {
+  try {
+    res.status(201).json({ message: "Comment successfully posted!", user: req.user, uid: req.user.uid });
+  } catch (error) {
+    res.status(400).json({ error: "Failed to post comment." });
   }
 });
 
@@ -286,9 +298,6 @@ app.get("/movie/title/:title", async (req, res) => {
   }
 });
 
-app.get("/user", verifySession, async (req, res) => {
-  res.json({ message: "This is protected data", user: req.user });
-});
 
 // mongoose
 //   .connect(process.env.MONGODB_ATLAS_URI)

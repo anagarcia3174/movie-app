@@ -2,7 +2,7 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomeScreen from "./screens/HomeScreen";
 import { useEffect } from "react";
-import { auth } from "./services/firebase";
+import { auth, checkAndRefreshSession } from "./services/firebase";
 import { useDispatch } from "react-redux";
 import { login, logout } from "./redux/slices/userSlice";
 import ProfileScreen from "./screens/ProfileScreen";
@@ -19,16 +19,21 @@ function App() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (userAuth) => {
       if (userAuth) {
-
-        dispatch(
-          login({
-            uid: userAuth.uid,
-            email: userAuth.email,
-            displayName: userAuth.displayName,
-            photoURL: userAuth.photoURL,
-            emailVerified: userAuth.emailVerified,
-          })
-        );
+        try {
+          await checkAndRefreshSession();
+          
+          dispatch(
+            login({
+              uid: userAuth.uid,
+              email: userAuth.email,
+              displayName: userAuth.displayName,
+              photoURL: userAuth.photoURL,
+              emailVerified: userAuth.emailVerified,
+            })
+          );
+        } catch (error) {
+          dispatch(logout());
+        }
       } else {
         dispatch(logout());
       }

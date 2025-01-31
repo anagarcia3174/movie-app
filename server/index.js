@@ -29,20 +29,20 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-const verifyAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.split("Bearer ")[1];
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+// const verifyAuth = async (req, res, next) => {
+//   const token = req.headers.authorization?.split("Bearer ")[1];
+//   if (!token) {
+//     return res.status(401).json({ error: "Unauthorized" });
+//   }
 
-  try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: "Invalid token" });
-  }
-};
+//   try {
+//     const decodedToken = await admin.auth().verifyIdToken(token);
+//     req.user = decodedToken;
+//     next();
+//   } catch (error) {
+//     return res.status(401).json({ error: "Invalid token" });
+//   }
+// };
 
 const verifySession = async (req, res, next) => {
   const session = req.cookies.session;
@@ -202,7 +202,7 @@ app.post("/comments", verifySession, async (req, res) => {
   }
 });
 
-app.post("/report", verifyAuth, async (req, res) => {
+app.post("/report", verifySession, async (req, res) => {
   try {
     const { commentId, reason, details } = req.body;
     const report = new Report({
@@ -226,7 +226,7 @@ app.post("/report", verifyAuth, async (req, res) => {
 
 app.delete(
   "/comments/:id",
-  verifyAuth,
+  verifySession,
   verifyCommentOwnership,
   async (req, res) => {
     try {
@@ -241,7 +241,7 @@ app.delete(
   }
 );
 
-app.delete("/deleteAll/:id", verifyAuth, async (req, res) => {
+app.delete("/deleteAll/:id", verifySession, async (req, res) => {
   try {
     const userId = req.params.id;
     if (req.user.uid !== userId) {

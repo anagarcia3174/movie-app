@@ -120,6 +120,10 @@ app.delete("/auth/session", async (req, res) => {
   res.json({ status: 'success' });
 });
 
+app.get("/auth/session", verifySession, async (req, res) => {
+  res.json({ status: "success", user: req.user });
+});
+
 //Route used to get list of movies (based on Genre) for main screen
 app.get("/genre/:genre", async (req, res) => {
   const genre = req.params.genre;
@@ -258,9 +262,15 @@ app.delete("/deleteAll/:id", verifySession, async (req, res) => {
   }
 });
 
-app.get("/movie/title/:title", async (req, res) => {
+app.get("/movie", async (req, res) => {
   try {
-    const searchUrl = tmdbApiUrls.getSearchUrl(req.params.title);
+    const title = req.query.title;
+
+    if (!title) {
+      return res.status(400).json({ error: "Title parameter is required" });
+    }
+    
+    const searchUrl = tmdbApiUrls.getSearchUrl(title);
     const searchResponse = await axios.get(searchUrl);
 
     const movie = searchResponse.data.results[0];
